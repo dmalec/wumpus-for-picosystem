@@ -1,0 +1,56 @@
+name: Build
+
+on:
+  push:
+    branches:
+    - master
+    - release*
+
+  pull_request:
+    branches:
+    - master
+
+env:
+  PICO_SDK_PATH: /tmp/pico-sdk
+
+jobs:
+  build:
+    name: Build Wumpus
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - name: Install Dependencies
+      run: >
+        sudo apt-get install
+        build-essential
+        cmake
+        gcc-arm-none-eabi
+        libnewlib-arm-none-eabi
+        libstdc++-arm-none-eabi-newlib
+    - name: Checkout Pico SDK
+      run: |
+        git clone https://github.com/raspberrypi/pico-sdk.git /tmp/pico-sdk
+        cd /tmp/pico-sdk
+        git submodule update --init
+    - name: Checkout PicoSystem SDK
+      run: |
+        git clone https://github.com/pimoroni/picosystem.git /tmp/picosystem
+        mkdir /tmp/picosystem/build
+        cd /tmp/picosystem/build
+        cmake -DPICOSYSTEM_DIR:PATH=~/picosystem ..
+        make
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Build Wumpus
+      run: |
+        mkdir build
+        cd build
+        cmake -DPICOSYSTEM_DIR:PATH=/tmp/picosystem ..
+        make
+    - name: Archive UF2
+      uses: actions/upload-artifact@v2
+      with:
+        name: wumpus.uf2
+        path: build/wumpus.uf2
