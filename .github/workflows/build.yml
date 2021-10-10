@@ -4,6 +4,7 @@ on:
   push:
     branches:
     - master
+    - CD-*
     - release*
 
   pull_request:
