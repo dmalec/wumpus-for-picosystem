@@ -24,6 +24,7 @@ make
 git clone git@github.com:dmalec/wumpus-for-picosystem.git
 cd wumpus-for-picosystem
 mkdir build
+cd build
 cmake -DPICOSYSTEM_DIR:PATH=~/picosystem ..
 make
 ```
