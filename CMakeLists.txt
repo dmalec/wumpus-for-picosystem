@@ -1,0 +1,16 @@
+cmake_minimum_required(VERSION 3.12)
+
+# Pull in PICO SDK (must be before project)
+include(pico_sdk_import.cmake)
+
+project(wumpus C CXX ASM)
+
+find_package(PICOSYSTEM REQUIRED)
+
+picosystem_executable(
+  wumpus
+  wumpus.cpp
+)
+
+pixel_double(wumpus)
+
