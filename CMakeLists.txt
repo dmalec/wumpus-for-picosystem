@@ -5,6 +5,9 @@ include(pico_sdk_import.cmake)
 
 project(wumpus C CXX ASM)
 
+# Initialize the SDK
+pico_sdk_init()
+
 find_package(PICOSYSTEM REQUIRED)
 
 picosystem_executable(
