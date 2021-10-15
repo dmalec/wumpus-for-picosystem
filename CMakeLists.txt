@@ -16,4 +16,4 @@ picosystem_executable(
 )
 
 pixel_double(wumpus)
-
+no_spritesheet(wumpus)

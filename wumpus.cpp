@@ -1,14 +1,88 @@
+#include <cstdlib>
+#include <ctime>
+
 #include "picosystem.hpp"
 
 using namespace picosystem;
+
+struct Point {
+  short x;
+  short y;
+};
+
+// Custom sprite sheet
+const color_t custom_sprite_sheet_data[192] = {
+  0xf0f0, 0xf0f0, 0x0000, 0x0000, 0x0000, 0x0000, 0xf0f0, 0xf0f0,
+  0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+  0x0000, 0x0000, 0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x0000, 0x0000,
+  0x0000, 0xf0f0, 0x0000, 0x0000, 0x0000, 0x0000, 0xf0f0, 0x0000,
+  0x0000, 0x0ff0, 0x0000, 0x0000, 0x0000, 0x0000, 0x0ff0, 0x0000,
+  0x0000, 0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x0000,
+  0x0000, 0xf0f0, 0x0000, 0x0000, 0x0000, 0x0000, 0xf0f0, 0x0000,
+  0x0ff0, 0x0ff0, 0x0ff0, 0x0000, 0x0000, 0x0ff0, 0x0ff0, 0x0ff0,
+  0x00ff, 0x0000, 0x0000, 0x00ff, 0x00ff, 0x0000, 0x0000, 0x00ff,
+  0x0000, 0xf0f0, 0x0000, 0x0000, 0x0000, 0x0000, 0xf0f0, 0x0000,
+  0x0ff0, 0x0000, 0x0000, 0x0ff0, 0x0ff0, 0x0000, 0x0000, 0x0ff0,
+  0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x00ff,
+  0x0000, 0xf0f0, 0x0000, 0x0000, 0x0000, 0x0000, 0xf0f0, 0x0000,
+  0x0ff0, 0x0000, 0x0000, 0x0ff0, 0x0ff0, 0x0000, 0x0000, 0x0ff0,
+  0x0000, 0x0000, 0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x0000, 0x0000,
+  0x0000, 0xf0f0, 0x0000, 0x0000, 0x0000, 0x0000, 0xf0f0, 0x0000,
+  0x0000, 0x0000, 0x0ff0, 0x0000, 0x0000, 0x0ff0, 0x0000, 0x0000,
+  0x0000, 0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x0000,
+  0x0000, 0xf0f0, 0x0000, 0x0000, 0x0000, 0x0000, 0xf0f0, 0x0000,
+  0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+  0x0000, 0x00ff, 0x0000, 0x0000, 0x0000, 0x0000, 0x00ff, 0x0000,
+  0x0000, 0xf0f0, 0xf0f0, 0xf0f0, 0xf0f0, 0xf0f0, 0xf0f0, 0x0000,
+  0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+  0x00ff, 0x0000, 0x00ff, 0x0000, 0x0000, 0x00ff, 0x0000, 0x00ff,
+};
+buffer_t CUSTOM_SPRITESHEET{.w = 24, .h = 8, .data = (color_t *)custom_sprite_sheet_data};
+buffer_t *custom_sprite_sheet = &CUSTOM_SPRITESHEET;
 
 bool moving_north, moving_south, moving_east, moving_west;
 int camera_x, camera_y;
 int world_x, world_y;
 
+// Hazard locations
+Point wumpus, bat_a, bat_b, pit_a, pit_b;
+
 int map[10][10];
 
+int rand_range(int max) {
+  return std::rand() / ((RAND_MAX + 1u)/max);
+}
+
+Point random_location() {
+  Point location;
+
+  location.x = rand_range(9);
+  location.y = rand_range(9);
+
+  return location;
+}
+
+bool compare_points(Point p, int x, int y) {
+  return p.x == x && p.y == y;
+}
+
+bool is_neighbor(Point p, int x, int y) {
+  return (p.y == y && (p.x == x-1 || p.x == x+1)) ||
+    (p.x == x && (p.y == y-1 || p.y == y+1));
+}
+
+void init_hazards() {
+  wumpus = random_location();
+  bat_a = random_location();
+  bat_b = random_location();
+  pit_a = random_location();
+  pit_b = random_location();
+}
+
 void init() {
+  // Seed random
+  std::srand(std::time(nullptr));
+
   moving_north = false;
   moving_south = false;
   moving_east = false;
@@ -17,6 +91,8 @@ void init() {
   camera_y = 0;
   world_x = 0;
   world_y = 0;
+
+  init_hazards();
 
   for (int x=0; x<10; x++) {
     for (int y=0; y<10; y++) {
@@ -35,6 +111,8 @@ void init() {
       }
     }
   }
+
+  spritesheet(*custom_sprite_sheet);
 }
 
 bool currently_moving() {
@@ -107,6 +185,33 @@ void draw_room(int x, int y, int map_x, int map_y) {
   }
 }
 
+void draw_hazards() {
+  if (compare_points(wumpus, world_x, world_y)) {
+    pen(15, 0, 0);
+    text("WUMPUS", 40, 40);
+  } else if (is_neighbor(wumpus, world_x, world_y)) {
+    sprite(2, 22, 2);
+  }
+
+  if (compare_points(bat_a, world_x, world_y) ||
+      compare_points(bat_b, world_x, world_y)) {
+    pen(0, 0, 15);
+    text("BAT", 40, 50);
+  } else if (is_neighbor(bat_a, world_x, world_y) ||
+             is_neighbor(bat_b, world_x, world_y)) {
+    sprite(1, 12, 2);
+  }
+
+  if (compare_points(pit_a, world_x, world_y) ||
+      compare_points(pit_b, world_x, world_y)) {
+    pen(0, 15, 0);
+    text("PIT", 40, 60);
+  } else if (is_neighbor(pit_a, world_x, world_y) ||
+             is_neighbor(pit_b, world_x, world_y)) {
+    sprite(0, 2, 2);
+  }
+}
+
 void draw() {
   camera(0, 0);
   pen(0, 0, 0);
@@ -127,4 +232,8 @@ void draw() {
   text(str((float)world_x, 0),  96, 112);
   text(",",                    104, 112);
   text(str((float)world_y, 0), 112, 112);
+
+  if (!currently_moving()) {
+    draw_hazards();
+  }
 }
