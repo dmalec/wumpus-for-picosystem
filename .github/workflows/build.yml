@@ -11,6 +11,9 @@ on:
     branches:
     - main
 
+  schedule:
+    - cron: '0 0 * * *'
+
 env:
   PICO_SDK_PATH: /tmp/pico-sdk
 
