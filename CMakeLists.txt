@@ -12,6 +12,7 @@ find_package(PICOSYSTEM REQUIRED)
 
 picosystem_executable(
   wumpus
+  wumpus.hpp
   wumpus.cpp
 )
 

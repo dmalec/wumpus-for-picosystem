@@ -2,8 +2,17 @@
 #include <ctime>
 
 #include "picosystem.hpp"
+#include "wumpus.hpp"
 
 using namespace picosystem;
+
+
+struct State {
+  void (*update)(uint32_t);
+  void (*draw)();
+  uint32_t change_time;
+};
+State state;
 
 struct Point {
   short x;
@@ -11,33 +20,42 @@ struct Point {
 };
 
 // Custom sprite sheet
-const color_t custom_sprite_sheet_data[192] = {
+// Custom sprite sheet
+const color_t custom_sprite_sheet_data[256] = {
   0xf0f0, 0xf0f0, 0x0000, 0x0000, 0x0000, 0x0000, 0xf0f0, 0xf0f0,
   0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
   0x0000, 0x0000, 0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x0000, 0x0000,
+  0x0000, 0x0000, 0x00f0, 0x0000, 0x0000, 0x00f0, 0x0000, 0x0000,
   0x0000, 0xf0f0, 0x0000, 0x0000, 0x0000, 0x0000, 0xf0f0, 0x0000,
   0x0000, 0x0ff0, 0x0000, 0x0000, 0x0000, 0x0000, 0x0ff0, 0x0000,
   0x0000, 0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x0000,
+  0x0000, 0x0000, 0x00f0, 0x0000, 0x0000, 0x00f0, 0x0000, 0x0000,
   0x0000, 0xf0f0, 0x0000, 0x0000, 0x0000, 0x0000, 0xf0f0, 0x0000,
   0x0ff0, 0x0ff0, 0x0ff0, 0x0000, 0x0000, 0x0ff0, 0x0ff0, 0x0ff0,
   0x00ff, 0x0000, 0x0000, 0x00ff, 0x00ff, 0x0000, 0x0000, 0x00ff,
+  0x0000, 0x0000, 0x00f0, 0x0000, 0x0000, 0x00f0, 0x0000, 0x0000,
   0x0000, 0xf0f0, 0x0000, 0x0000, 0x0000, 0x0000, 0xf0f0, 0x0000,
   0x0ff0, 0x0000, 0x0000, 0x0ff0, 0x0ff0, 0x0000, 0x0000, 0x0ff0,
   0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x00ff,
+  0x0000, 0x0000, 0x0000, 0x00f0, 0x00f0, 0x0000, 0x0000, 0x0000,
   0x0000, 0xf0f0, 0x0000, 0x0000, 0x0000, 0x0000, 0xf0f0, 0x0000,
   0x0ff0, 0x0000, 0x0000, 0x0ff0, 0x0ff0, 0x0000, 0x0000, 0x0ff0,
   0x0000, 0x0000, 0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x0000, 0x0000,
+  0x0000, 0x0000, 0x0000, 0x00f0, 0x00f0, 0x0000, 0x0000, 0x0000,
   0x0000, 0xf0f0, 0x0000, 0x0000, 0x0000, 0x0000, 0xf0f0, 0x0000,
   0x0000, 0x0000, 0x0ff0, 0x0000, 0x0000, 0x0ff0, 0x0000, 0x0000,
   0x0000, 0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x0000,
+  0x0000, 0x0000, 0x00f0, 0x00f0, 0x00f0, 0x00f0, 0x0000, 0x0000,
   0x0000, 0xf0f0, 0x0000, 0x0000, 0x0000, 0x0000, 0xf0f0, 0x0000,
   0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
   0x0000, 0x00ff, 0x0000, 0x0000, 0x0000, 0x0000, 0x00ff, 0x0000,
+  0x0000, 0x00f0, 0x0000, 0x00f0, 0x00f0, 0x0000, 0x00f0, 0x0000,
   0x0000, 0xf0f0, 0xf0f0, 0xf0f0, 0xf0f0, 0xf0f0, 0xf0f0, 0x0000,
   0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
   0x00ff, 0x0000, 0x00ff, 0x0000, 0x0000, 0x00ff, 0x0000, 0x00ff,
+  0x00f0, 0x0000, 0x0000, 0x00f0, 0x00f0, 0x0000, 0x0000, 0x00f0,
 };
-buffer_t CUSTOM_SPRITESHEET{.w = 24, .h = 8, .data = (color_t *)custom_sprite_sheet_data};
+buffer_t CUSTOM_SPRITESHEET{.w = 32, .h = 8,.data = (color_t *)custom_sprite_sheet_data};
 buffer_t *custom_sprite_sheet = &CUSTOM_SPRITESHEET;
 
 bool moving_north, moving_south, moving_east, moving_west;
@@ -60,15 +78,6 @@ Point random_location() {
   location.y = rand_range(9);
 
   return location;
-}
-
-bool compare_points(Point p, int x, int y) {
-  return p.x == x && p.y == y;
-}
-
-bool is_neighbor(Point p, int x, int y) {
-  return (p.y == y && (p.x == x-1 || p.x == x+1)) ||
-    (p.x == x && (p.y == y-1 || p.y == y+1));
 }
 
 void init_hazards() {
@@ -113,14 +122,48 @@ void init() {
   }
 
   spritesheet(*custom_sprite_sheet);
+
+  state.update = update_enter_new_room;
+  state.draw = draw_enter_new_room;
+  state.change_time = 0;
 }
+
+void update(uint32_t tick) {
+  state.update(tick);
+}
+
+void draw() {
+  state.draw();
+}
+
+
+// -------------------------------------------------------------------------------
+// Moving states / functions
+// -------------------------------------------------------------------------------
 
 bool currently_moving() {
   return moving_north || moving_south || moving_east || moving_west;
 }
 
-void update(uint32_t tick) {
+bool compare_points(Point p, int x, int y) {
+  return p.x == x && p.y == y;
+}
+
+bool is_neighbor(Point p, int x, int y) {
+  return (p.y == y && (p.x == x-1 || p.x == x+1)) ||
+    (p.x == x && (p.y == y-1 || p.y == y+1));
+}
+
+void update_enter_new_room(uint32_t tick) {
   if (!currently_moving()) {
+    if (compare_points(pit_a, world_x, world_y) ||
+        compare_points(pit_b, world_x, world_y)) {
+      // change state
+      state.update = update_fell_in_pit;
+      state.draw = draw_fell_in_pit;
+      state.change_time = tick;
+    }
+
     moving_north = pressed(UP) && (map[world_x][world_y] & 0x0010);
     moving_south = pressed(DOWN) && (map[world_x][world_y] & 0x1000);
     moving_east = pressed(RIGHT) && (map[world_x][world_y] & 0x0100);
@@ -212,7 +255,7 @@ void draw_hazards() {
   }
 }
 
-void draw() {
+void draw_enter_new_room() {
   camera(0, 0);
   pen(0, 0, 0);
   clear();
@@ -235,5 +278,47 @@ void draw() {
 
   if (!currently_moving()) {
     draw_hazards();
+  }
+}
+
+// -------------------------------------------------------------------------------
+// Pit states / functions
+// -------------------------------------------------------------------------------
+
+int pit_y_pos = -8;
+bool pit_show_text = false;
+
+void update_fell_in_pit(uint32_t tick) {
+  // animation should take 2 seconds
+  if (tick - state.change_time > 400) {
+    world_x = 0;
+    world_y = 0;
+
+    // change state
+    state.update = update_enter_new_room;
+    state.draw = draw_enter_new_room;
+    state.change_time = tick;
+  }
+
+  pit_y_pos = (int)((float)(tick - state.change_time) / 200.0 * 120.0);
+  pit_show_text = tick - state.change_time > 200;
+}
+
+void draw_fell_in_pit() {
+  camera(0, 0);
+  pen(0, 0, 0);
+  clear();
+
+  pen(15, 15, 15);
+  frect(40, 0, 40, 120);
+
+  pen(0, 11, 0);
+  frect(40, 96, 40, 24);
+
+  sprite(3, 56, pit_y_pos);
+
+  if (pit_show_text) {
+    pen(15, 15, 15);
+    text("PIT!", 52, 112);
   }
 }
