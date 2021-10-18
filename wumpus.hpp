@@ -11,3 +11,10 @@ void draw_enter_new_room();
 
 void update_fell_in_pit(uint32_t tick);
 void draw_fell_in_pit();
+
+// -------------------------------------------------------------------------------
+// Wumpus states / functions
+// -------------------------------------------------------------------------------
+
+void update_bumped_wumpus(uint32_t tick);
+void draw_bumped_wumpus();
