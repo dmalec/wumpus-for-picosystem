@@ -8,6 +8,7 @@
 #include "picosystem.hpp"
 #include "wumpus.hpp"
 #include "spritesheet.hpp"
+#include "utils.hpp"
 
 using namespace picosystem;
 
@@ -266,8 +267,8 @@ int bat_x_pos = 0;
 
 void update_bat_travel(uint32_t tick) {
   if (tick - current_state.change_time > 400) {
-    world_x = 0;
-    world_y = 0;
+    world_x = rand_range(9);
+    world_y = rand_range(9);
 
     set_state(tick, ENTER_NEW_ROOM_STATE);
   }
@@ -297,12 +298,9 @@ int pit_y_pos = -8;
 bool pit_show_text = false;
 
 void update_fell_in_pit(uint32_t tick) {
-  // animation should take 2 seconds
   if (tick - current_state.change_time > 400) {
-    world_x = 0;
-    world_y = 0;
-
-    set_state(tick, ENTER_NEW_ROOM_STATE);
+    set_state(tick, GAME_OVER_STATE);
+    return;
   }
 
   pit_y_pos = (int)((float)(tick - current_state.change_time) / 200.0 * 120.0);
@@ -334,10 +332,7 @@ bool wumpus_show_text = false;
 
 void update_bumped_wumpus(uint32_t tick) {
   if (tick - current_state.change_time > 400) {
-    world_x = 0;
-    world_y = 0;
-
-    set_state(tick, ENTER_NEW_ROOM_STATE);
+    set_state(tick, GAME_OVER_STATE);
     return;
   }
 
@@ -365,4 +360,47 @@ void draw_bumped_wumpus() {
     uint32_t wumpus_width = text_width(wumpus_text);
     text(wumpus_text, 60 - wumpus_width / 2, 112);
   }
+}
+
+
+// -------------------------------------------------------------------------------
+// Splash screen states / functions
+// -------------------------------------------------------------------------------
+
+bool game_over_blink = false;
+uint8_t game_over_fade = 0;
+
+void update_game_over(uint32_t tick) {
+  if (any_key_pressed()) {
+    world_x = 0;
+    world_y = 0;
+
+    set_state(tick, ENTER_NEW_ROOM_STATE);
+    return;
+  }
+
+  uint32_t time_slice = (tick - current_state.change_time) % 150;
+  if (time_slice == 0) {
+    game_over_blink = !game_over_blink;
+  }
+
+  if (game_over_blink) {
+    game_over_fade = time_slice / 10;
+  } else {
+    game_over_fade = 15 - time_slice / 10;
+  }
+}
+
+void draw_game_over() {
+  pen(15, 15, 15);
+  std::string wumpus_text = "GAME OVER";
+  uint32_t wumpus_width = text_width(wumpus_text);
+  text(wumpus_text, 60 - wumpus_width / 2, 60);
+
+  std::string press_any_key_text = "PRESS ANY KEY";
+  uint32_t press_any_key_text_w = text_width(press_any_key_text);
+  text(press_any_key_text, 60 - press_any_key_text_w / 2, 100);
+
+  pen(0, 0, 0, game_over_fade);
+  frect(0, 90, 120, 30);
 }
