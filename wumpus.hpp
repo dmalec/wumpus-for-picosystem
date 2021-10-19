@@ -64,4 +64,14 @@ void draw_bumped_wumpus();
 const state BUMPED_WUMPUS_STATE{.update = update_bumped_wumpus, .draw=draw_bumped_wumpus};
 
 
+// -------------------------------------------------------------------------------
+// Splash screen states / functions
+// -------------------------------------------------------------------------------
+
+void update_game_over(uint32_t tick);
+void draw_game_over();
+
+const state GAME_OVER_STATE{.update = update_game_over, .draw=draw_game_over};
+
+
 #endif // WUMPUS_HPP_INCLUDED_
