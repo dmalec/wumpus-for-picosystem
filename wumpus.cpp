@@ -86,8 +86,8 @@ const color_t custom_sprite_sheet_data[512] = {
   0x0000, 0x0000, 0xffff, 0xffff, 0xffff, 0xffff, 0x0000, 0x0000,
   0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
 };
-buffer_t CUSTOM_SPRITESHEET{.w = 32, .h = 16,.data = (color_t *)custom_sprite_sheet_data};
-buffer_t *custom_sprite_sheet = &CUSTOM_SPRITESHEET;
+buffer_t *CUSTOM_SPRITESHEET = buffer(32, 16, (void *)custom_sprite_sheet_data);
+buffer_t *custom_sprite_sheet = CUSTOM_SPRITESHEET;
 
 bool moving_north, moving_south, moving_east, moving_west;
 int camera_x, camera_y;
@@ -152,7 +152,7 @@ void init() {
     }
   }
 
-  spritesheet(*custom_sprite_sheet);
+  spritesheet(custom_sprite_sheet);
 
   state.update = update_enter_new_room;
   state.draw = draw_enter_new_room;
