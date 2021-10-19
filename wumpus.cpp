@@ -1,3 +1,7 @@
+// Copyright(c) 2021 Dan Malec
+//
+// MIT License (see LICENSE file for details)
+
 #include <cstdlib>
 #include <ctime>
 
@@ -6,13 +10,6 @@
 
 using namespace picosystem;
 
-
-struct State {
-  void (*update)(uint32_t);
-  void (*draw)();
-  uint32_t change_time;
-};
-State state;
 
 struct Point {
   short x;
@@ -89,6 +86,7 @@ const color_t custom_sprite_sheet_data[512] = {
 buffer_t *CUSTOM_SPRITESHEET = buffer(32, 16, (void *)custom_sprite_sheet_data);
 buffer_t *custom_sprite_sheet = CUSTOM_SPRITESHEET;
 
+state current_state;
 bool moving_north, moving_south, moving_east, moving_west;
 int camera_x, camera_y;
 int world_x, world_y;
@@ -154,17 +152,27 @@ void init() {
 
   spritesheet(custom_sprite_sheet);
 
-  state.update = update_enter_new_room;
-  state.draw = draw_enter_new_room;
-  state.change_time = 0;
+  current_state.update = update_enter_new_room;
+  current_state.draw = draw_enter_new_room;
+  current_state.change_time = 0;
 }
 
 void update(uint32_t tick) {
-  state.update(tick);
+  current_state.update(tick);
 }
 
 void draw() {
-  state.draw();
+  camera(0, 0);
+  pen(0, 0, 0);
+  clear();
+
+  current_state.draw();
+}
+
+void set_state(uint32_t tick, state new_state) {
+  current_state.update = new_state.update;
+  current_state.draw = new_state.draw;
+  current_state.change_time = tick;
 }
 
 
@@ -183,63 +191,6 @@ bool compare_points(Point p, int x, int y) {
 bool is_neighbor(Point p, int x, int y) {
   return (p.y == y && (p.x == x-1 || p.x == x+1)) ||
     (p.x == x && (p.y == y-1 || p.y == y+1));
-}
-
-void update_enter_new_room(uint32_t tick) {
-  if (!currently_moving()) {
-    if (compare_points(pit_a, world_x, world_y) ||
-        compare_points(pit_b, world_x, world_y)) {
-      // change state
-      state.update = update_fell_in_pit;
-      state.draw = draw_fell_in_pit;
-      state.change_time = tick;
-    }
-
-    if (compare_points(wumpus, world_x, world_y)) {
-      // change state
-      state.update = update_bumped_wumpus;
-      state.draw = draw_bumped_wumpus;
-      state.change_time = tick;
-    }
-
-    moving_north = pressed(UP) && (map[world_x][world_y] & 0x0010);
-    moving_south = pressed(DOWN) && (map[world_x][world_y] & 0x1000);
-    moving_east = pressed(RIGHT) && (map[world_x][world_y] & 0x0100);
-    moving_west = pressed(LEFT) && (map[world_x][world_y] & 0x0001);
-  }
-
-  if (moving_north) {
-    camera_y--;
-    if (camera_y <= -120) {
-      camera_y = 0;
-      world_y--;
-      moving_north = false;
-    }
-  }
-  if (moving_south) {
-    camera_y++;
-    if (camera_y >= 121) {
-      camera_y = 0;
-      world_y++;
-      moving_south = false;
-    }
-  }
-  if (moving_west) {
-    camera_x--;
-    if (camera_x <= -120) {
-      camera_x = 0;
-      world_x--;
-      moving_west = false;
-    }
-  }
-  if (moving_east) {
-    camera_x++;
-    if (camera_x >= 121) {
-      camera_x = 0;
-      world_x++;
-      moving_east = false;
-    }
-  }
 }
 
 void draw_room(int x, int y, int map_x, int map_y) {
@@ -266,38 +217,96 @@ void draw_room(int x, int y, int map_x, int map_y) {
   }
 }
 
-void draw_hazards() {
-  if (compare_points(wumpus, world_x, world_y)) {
-    pen(15, 0, 0);
-    text("WUMPUS", 40, 40);
-  } else if (is_neighbor(wumpus, world_x, world_y)) {
-    sprite(2, 22, 2);
-  }
+void update_enter_new_room(uint32_t tick) {
+  if (!currently_moving()) {
+    if (compare_points(pit_a, world_x, world_y) ||
+        compare_points(pit_b, world_x, world_y)) {
+      set_state(tick, FELL_IN_PIT_STATE);
+    }
 
-  if (compare_points(bat_a, world_x, world_y) ||
-      compare_points(bat_b, world_x, world_y)) {
-    pen(0, 0, 15);
-    text("BAT", 40, 50);
-  } else if (is_neighbor(bat_a, world_x, world_y) ||
-             is_neighbor(bat_b, world_x, world_y)) {
-    sprite(1, 12, 2);
-  }
+    if (compare_points(wumpus, world_x, world_y)) {
+      set_state(tick, BUMPED_WUMPUS_STATE);
+    }
 
-  if (compare_points(pit_a, world_x, world_y) ||
-      compare_points(pit_b, world_x, world_y)) {
-    pen(0, 15, 0);
-    text("PIT", 40, 60);
-  } else if (is_neighbor(pit_a, world_x, world_y) ||
-             is_neighbor(pit_b, world_x, world_y)) {
-    sprite(0, 2, 2);
+    moving_north = pressed(UP) && (map[world_x][world_y] & 0x0010);
+    moving_south = pressed(DOWN) && (map[world_x][world_y] & 0x1000);
+    moving_east = pressed(RIGHT) && (map[world_x][world_y] & 0x0100);
+    moving_west = pressed(LEFT) && (map[world_x][world_y] & 0x0001);
+
+    if (currently_moving()) {
+      set_state(tick, WALKING_STATE);
+    }
   }
 }
 
 void draw_enter_new_room() {
-  camera(0, 0);
-  pen(0, 0, 0);
-  clear();
+  pen(15, 15, 15);
+  draw_room(   0,    0, world_x,     world_y);
 
+  pen(12, 11, 4 );
+  text(str((float)world_x, 0),  96, 112);
+  text(",",                    104, 112);
+  text(str((float)world_y, 0), 112, 112);
+
+  if (is_neighbor(wumpus, world_x, world_y)) {
+    sprite(2, 22, 2);
+  }
+
+  if (is_neighbor(bat_a, world_x, world_y) ||
+      is_neighbor(bat_b, world_x, world_y)) {
+    sprite(1, 12, 2);
+  }
+
+  if (is_neighbor(pit_a, world_x, world_y) ||
+      is_neighbor(pit_b, world_x, world_y)) {
+    sprite(0, 2, 2);
+  }
+}
+
+void update_walking(uint32_t tick) {
+  bool done_moving = false;
+
+  if (moving_north) {
+    camera_y--;
+    if (camera_y <= -120) {
+      world_y--;
+      done_moving = true;
+    }
+  }
+
+  if (moving_south) {
+    camera_y++;
+    if (camera_y >= 121) {
+      world_y++;
+      done_moving = true;
+    }
+  }
+
+  if (moving_west) {
+    camera_x--;
+    if (camera_x <= -120) {
+      world_x--;
+      done_moving = true;
+    }
+  }
+
+  if (moving_east) {
+    camera_x++;
+    if (camera_x >= 121) {
+      world_x++;
+      done_moving = true;
+    }
+  }
+
+  if (done_moving) {
+    camera_x = camera_y = 0;
+    moving_north = moving_south = moving_east = moving_west = false;
+
+    set_state(tick, ENTER_NEW_ROOM_STATE);
+  }
+}
+
+void draw_walking() {
   camera(camera_x, camera_y);
   pen(15, 15, 15);
 
@@ -309,15 +318,8 @@ void draw_enter_new_room() {
   draw_room(   0,  120, world_x,     world_y + 1);
 
   camera(0, 0);
-  pen(12, 11, 4 );
-  text(str((float)world_x, 0),  96, 112);
-  text(",",                    104, 112);
-  text(str((float)world_y, 0), 112, 112);
-
-  if (!currently_moving()) {
-    draw_hazards();
-  }
 }
+
 
 // -------------------------------------------------------------------------------
 // Pit states / functions
@@ -328,25 +330,18 @@ bool pit_show_text = false;
 
 void update_fell_in_pit(uint32_t tick) {
   // animation should take 2 seconds
-  if (tick - state.change_time > 400) {
+  if (tick - current_state.change_time > 400) {
     world_x = 0;
     world_y = 0;
 
-    // change state
-    state.update = update_enter_new_room;
-    state.draw = draw_enter_new_room;
-    state.change_time = tick;
+    set_state(tick, ENTER_NEW_ROOM_STATE);
   }
 
-  pit_y_pos = (int)((float)(tick - state.change_time) / 200.0 * 120.0);
-  pit_show_text = tick - state.change_time > 200;
+  pit_y_pos = (int)((float)(tick - current_state.change_time) / 200.0 * 120.0);
+  pit_show_text = tick - current_state.change_time > 200;
 }
 
 void draw_fell_in_pit() {
-  camera(0, 0);
-  pen(0, 0, 0);
-  clear();
-
   pen(15, 15, 15);
   frect(40, 0, 40, 120);
 
@@ -370,27 +365,20 @@ int wumpus_y_offset = -8;
 bool wumpus_show_text = false;
 
 void update_bumped_wumpus(uint32_t tick) {
-  if (tick - state.change_time > 400) {
+  if (tick - current_state.change_time > 400) {
     world_x = 0;
     world_y = 0;
 
-    // change state
-    state.update = update_enter_new_room;
-    state.draw = draw_enter_new_room;
-    state.change_time = tick;
+    set_state(tick, ENTER_NEW_ROOM_STATE);
     return;
   }
 
-  wumpus_y_offset = (int)((float)(tick - state.change_time) / 200.0 * (60.0 - 15.0));
+  wumpus_y_offset = (int)((float)(tick - current_state.change_time) / 200.0 * (60.0 - 15.0));
   wumpus_y_offset = wumpus_y_offset < (60 - 15) ? wumpus_y_offset : (60 - 15);
-  wumpus_show_text = tick - state.change_time > 200;
+  wumpus_show_text = tick - current_state.change_time > 200;
 }
 
 void draw_bumped_wumpus() {
-  camera(0, 0);
-  pen(0, 0, 0);
-  clear();
-
   pen(15, 0, 0);
   frect(0, 0, 120, wumpus_y_offset);
   frect(0, 120-wumpus_y_offset, 120, wumpus_y_offset);
