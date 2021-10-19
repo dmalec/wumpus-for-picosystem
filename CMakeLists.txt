@@ -14,6 +14,8 @@ picosystem_executable(
   wumpus
   wumpus.hpp
   wumpus.cpp
+  spritesheet.hpp
+  spritesheet.cpp
 )
 
 pixel_double(wumpus)

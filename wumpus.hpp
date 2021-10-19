@@ -35,6 +35,16 @@ const state WALKING_STATE{.update = update_walking, .draw=draw_walking};
 
 
 // -------------------------------------------------------------------------------
+// Bat states / functions
+// -------------------------------------------------------------------------------
+
+void update_bat_travel(uint32_t tick);
+void draw_bat_travel();
+
+const state BAT_TRAVEL_STATE{.update = update_bat_travel, .draw=draw_bat_travel};
+
+
+// -------------------------------------------------------------------------------
 // Pit states / functions
 // -------------------------------------------------------------------------------
 
