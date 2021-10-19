@@ -6,6 +6,19 @@
 #define UTILS_HPP_INCLUDED_
 
 
+struct Point {
+  short x;
+  short y;
+};
+
+
+bool compare_points(Point p, int x, int y);
+
+
+int rand_range(int max);
+Point random_location();
+
+
 bool any_key_pressed();
 
 

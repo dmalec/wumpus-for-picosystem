@@ -13,12 +13,6 @@
 using namespace picosystem;
 
 
-struct Point {
-  short x;
-  short y;
-};
-
-
 state current_state;
 bool moving_north, moving_south, moving_east, moving_west;
 int camera_x, camera_y;
@@ -29,18 +23,6 @@ Point wumpus, bat_a, bat_b, pit_a, pit_b;
 
 int map[10][10];
 
-int rand_range(int max) {
-  return std::rand() / ((RAND_MAX + 1u)/max);
-}
-
-Point random_location() {
-  Point location;
-
-  location.x = rand_range(9);
-  location.y = rand_range(9);
-
-  return location;
-}
 
 void init_hazards() {
   wumpus = random_location();
@@ -115,10 +97,6 @@ void set_state(uint32_t tick, state new_state) {
 
 bool currently_moving() {
   return moving_north || moving_south || moving_east || moving_west;
-}
-
-bool compare_points(Point p, int x, int y) {
-  return p.x == x && p.y == y;
 }
 
 bool is_neighbor(Point p, int x, int y) {
