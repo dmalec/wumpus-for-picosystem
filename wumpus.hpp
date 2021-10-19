@@ -20,13 +20,20 @@ void set_state(uint32_t tick, state new_state);
 
 
 // -------------------------------------------------------------------------------
-// Moving states / functions
+// Room states / functions
 // -------------------------------------------------------------------------------
 
 void update_enter_new_room(uint32_t tick);
-void draw_enter_new_room();
+void update_standing_in_room(uint32_t tick);
+void draw_single_room();
 
-const state ENTER_NEW_ROOM_STATE{.update = update_enter_new_room, .draw=draw_enter_new_room};
+const state ENTER_NEW_ROOM_STATE{.update = update_enter_new_room, .draw=draw_single_room};
+const state STANDING_STATE{.update = update_standing_in_room, .draw=draw_single_room};
+
+
+// -------------------------------------------------------------------------------
+// Walking states / functions
+// -------------------------------------------------------------------------------
 
 void update_walking(uint32_t tick);
 void draw_walking();

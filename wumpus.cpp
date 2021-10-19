@@ -24,18 +24,11 @@ Point wumpus, bat_a, bat_b, pit_a, pit_b;
 int map[10][10];
 
 
-void init_hazards() {
-  wumpus = random_location();
-  bat_a = random_location();
-  bat_b = random_location();
-  pit_a = random_location();
-  pit_b = random_location();
-}
+// -------------------------------------------------------------------------------
+// Initialize functions
+// -------------------------------------------------------------------------------
 
-void init() {
-  // Seed random
-  std::srand(std::time(nullptr));
-
+void init_globals() {
   moving_north = false;
   moving_south = false;
   moving_east = false;
@@ -44,9 +37,17 @@ void init() {
   camera_y = 0;
   world_x = 0;
   world_y = 0;
+}
 
-  init_hazards();
+void init_hazards() {
+  wumpus = random_location();
+  bat_a = random_location();
+  bat_b = random_location();
+  pit_a = random_location();
+  pit_b = random_location();
+}
 
+void init_map() {
   for (int x=0; x<10; x++) {
     for (int y=0; y<10; y++) {
       map[x][y] = 0x00;
@@ -64,12 +65,29 @@ void init() {
       }
     }
   }
+}
 
+
+// -------------------------------------------------------------------------------
+// Event loop functions
+// -------------------------------------------------------------------------------
+
+void set_state(uint32_t tick, state new_state) {
+  current_state.update = new_state.update;
+  current_state.draw = new_state.draw;
+  current_state.change_time = tick;
+}
+
+void init() {
+  // Seed random
+  std::srand(std::time(nullptr));
   spritesheet(custom_sprite_sheet);
 
-  current_state.update = update_enter_new_room;
-  current_state.draw = draw_enter_new_room;
-  current_state.change_time = 0;
+  init_globals();
+  init_hazards();
+  init_map();
+
+  set_state(0, ENTER_NEW_ROOM_STATE);
 }
 
 void update(uint32_t tick) {
@@ -82,12 +100,6 @@ void draw() {
   clear();
 
   current_state.draw();
-}
-
-void set_state(uint32_t tick, state new_state) {
-  current_state.update = new_state.update;
-  current_state.draw = new_state.draw;
-  current_state.change_time = tick;
 }
 
 
@@ -128,34 +140,37 @@ void draw_room(int x, int y, int map_x, int map_y) {
   }
 }
 
+
+// -------------------------------------------------------------------------------
+// Room states / functions
+// -------------------------------------------------------------------------------
+
 void update_enter_new_room(uint32_t tick) {
-  if (!currently_moving()) {
-    if (compare_points(bat_a, world_x, world_y) ||
-        compare_points(bat_b, world_x, world_y)) {
-      set_state(tick, BAT_TRAVEL_STATE);
-    }
-
-    if (compare_points(pit_a, world_x, world_y) ||
-        compare_points(pit_b, world_x, world_y)) {
-      set_state(tick, FELL_IN_PIT_STATE);
-    }
-
-    if (compare_points(wumpus, world_x, world_y)) {
-      set_state(tick, BUMPED_WUMPUS_STATE);
-    }
-
-    moving_north = pressed(UP) && (map[world_x][world_y] & 0x0010);
-    moving_south = pressed(DOWN) && (map[world_x][world_y] & 0x1000);
-    moving_east = pressed(RIGHT) && (map[world_x][world_y] & 0x0100);
-    moving_west = pressed(LEFT) && (map[world_x][world_y] & 0x0001);
-
-    if (currently_moving()) {
-      set_state(tick, WALKING_STATE);
-    }
+  if (compare_points(bat_a, world_x, world_y) ||
+      compare_points(bat_b, world_x, world_y)) {
+    set_state(tick, BAT_TRAVEL_STATE);
+  } else if (compare_points(pit_a, world_x, world_y) ||
+             compare_points(pit_b, world_x, world_y)) {
+    set_state(tick, FELL_IN_PIT_STATE);
+  } else if (compare_points(wumpus, world_x, world_y)) {
+    set_state(tick, BUMPED_WUMPUS_STATE);
+  } else {
+    set_state(tick, STANDING_STATE);
   }
 }
 
-void draw_enter_new_room() {
+void update_standing_in_room(uint32_t tick) {
+  moving_north = pressed(UP) && (map[world_x][world_y] & 0x0010);
+  moving_south = pressed(DOWN) && (map[world_x][world_y] & 0x1000);
+  moving_east = pressed(RIGHT) && (map[world_x][world_y] & 0x0100);
+  moving_west = pressed(LEFT) && (map[world_x][world_y] & 0x0001);
+
+  if (currently_moving()) {
+    set_state(tick, WALKING_STATE);
+  }
+}
+
+void draw_single_room() {
   pen(15, 15, 15);
   draw_room(   0,    0, world_x,     world_y);
 
@@ -178,6 +193,11 @@ void draw_enter_new_room() {
     sprite(0, 2, 2);
   }
 }
+
+
+// -------------------------------------------------------------------------------
+// Walking states / functions
+// -------------------------------------------------------------------------------
 
 void update_walking(uint32_t tick) {
   bool done_moving = false;
