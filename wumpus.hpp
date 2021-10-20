@@ -32,6 +32,16 @@ const state STANDING_STATE{.update = update_standing_in_room, .draw=draw_single_
 
 
 // -------------------------------------------------------------------------------
+// Shooting states / functions
+// -------------------------------------------------------------------------------
+
+void update_shooting(uint32_t tick);
+void draw_shooting();
+
+const state SHOOTING_STATE{.update = update_shooting, .draw=draw_shooting};
+
+
+// -------------------------------------------------------------------------------
 // Walking states / functions
 // -------------------------------------------------------------------------------
 
