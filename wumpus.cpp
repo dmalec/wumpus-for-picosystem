@@ -159,6 +159,13 @@ void update_enter_new_room(uint32_t tick) {
   }
 }
 
+enum wall {
+  WEST =  0x0001,
+  NORTH = 0x0010,
+  EAST =  0x0100,
+  SOUTH = 0x1000
+};
+
 void update_standing_in_room(uint32_t tick) {
   moving_north = pressed(UP) && (map[world_x][world_y] & 0x0010);
   moving_south = pressed(DOWN) && (map[world_x][world_y] & 0x1000);
@@ -167,6 +174,8 @@ void update_standing_in_room(uint32_t tick) {
 
   if (currently_moving()) {
     set_state(tick, WALKING_STATE);
+  } else if (pressed(A) | pressed(B) | pressed(X) | pressed(Y)) {
+    set_state(tick, SHOOTING_STATE);
   }
 }
 
@@ -191,6 +200,65 @@ void draw_single_room() {
   if (is_neighbor(pit_a, world_x, world_y) ||
       is_neighbor(pit_b, world_x, world_y)) {
     sprite(0, 2, 2);
+  }
+}
+
+
+// -------------------------------------------------------------------------------
+// Shooting states / functions
+// -------------------------------------------------------------------------------
+
+bool shooting_blink = false;
+uint8_t shooting_fade = 0;
+
+void update_shooting(uint32_t tick) {
+  if (pressed(A) | pressed(B) | pressed(X) | pressed(Y)) {
+    set_state(tick, STANDING_STATE);
+  }
+
+  uint32_t time_slice = (tick - current_state.change_time) % 75;
+  if (time_slice == 0) {
+    shooting_blink = !shooting_blink;
+  }
+
+  if (shooting_blink) {
+    shooting_fade = time_slice / 5;
+  } else {
+    shooting_fade = 15 - time_slice / 5;
+  }
+}
+
+void draw_shooting() {
+  draw_single_room();
+
+  pen(0, 0, 0);
+
+  if (map[world_x][world_y] & NORTH) {
+    sprite(8, 52, 2, 1, 1, 16, 16);
+  }
+  if (map[world_x][world_y] & SOUTH) {
+    sprite(10, 52, 102, 1, 1, 16, 16);
+  }
+  if (map[world_x][world_y] & EAST) {
+    sprite(9, 102, 52, 1, 1, 16, 16);
+  }
+  if (map[world_x][world_y] & WEST) {
+    sprite(11, 2, 52, 1, 1, 16, 16);
+  }
+
+  pen(15, 15, 15, shooting_fade);
+
+  if (map[world_x][world_y] & NORTH) {
+    frect(50, 0, 20, 20);
+  }
+  if (map[world_x][world_y] & SOUTH) {
+    frect(50, 100, 20, 20);
+  }
+  if (map[world_x][world_y] & EAST) {
+    frect(100, 50, 20, 20);
+  }
+  if (map[world_x][world_y] & WEST) {
+    frect(0, 50, 20, 20);
   }
 }
 
