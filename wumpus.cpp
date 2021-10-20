@@ -80,8 +80,6 @@ void set_state(uint32_t tick, state new_state) {
 }
 
 void init() {
-  // Seed random
-  std::srand(std::time(nullptr));
   spritesheet(custom_sprite_sheet);
 
   init_globals();
@@ -204,19 +202,27 @@ void draw_single_room() {
 
 bool shooting_blink = false;
 uint8_t shooting_fade = 0;
+uint8_t target_x = world_x;
+uint8_t target_y = world_y;
 
 void update_shooting(uint32_t tick) {
   shooting_direction = NONE;
+  target_x = world_x;
+  target_y = world_y;
 
   if (pressed(A) | pressed(B) | pressed(X) | pressed(Y)) {
     set_state(tick, STANDING_STATE);
   } else if (pressed(UP) && (map[world_x][world_y] & NORTH)) {
+    target_y--;
     shooting_direction = NORTH;
   } else if (pressed(RIGHT) && (map[world_x][world_y] & EAST)) {
+    target_x++;
     shooting_direction = EAST;
   } else if (pressed(DOWN) && (map[world_x][world_y] & SOUTH)) {
+    target_y++;
     shooting_direction = SOUTH;
   } else if (pressed(LEFT) && (map[world_x][world_y] & WEST)) {
+    target_x--;
     shooting_direction = WEST;
   }
 
@@ -278,8 +284,14 @@ void draw_shooting() {
 int arrow_pos = 0;
 
 void update_arrow_flight(uint32_t tick) {
+
   if (tick - current_state.change_time > 200) {
-    set_state(tick, GAME_OVER_STATE);
+    if (compare_points(wumpus, target_x, target_y)) {
+      set_state(tick, WIN_STATE);
+    } else {
+      set_state(tick, BUMPED_WUMPUS_STATE);
+    }
+
     return;
   }
 
@@ -393,9 +405,7 @@ void draw_bat_travel() {
   sprite(7, bat_x_pos, 60);
 
   pen(15, 15, 15);
-  std::string flavor_text = "BAT!";
-  uint32_t flavor_text_width = text_width(flavor_text);
-  text(flavor_text, 60 - flavor_text_width / 2, 112);
+  text_centered("BAT!", 60, 110);
 }
 
 
@@ -427,7 +437,7 @@ void draw_fell_in_pit() {
 
   if (pit_show_text) {
     pen(15, 15, 15);
-    text("PIT!", 52, 112);
+    text_centered("PIT!", 60, 110);
   }
 }
 
@@ -465,10 +475,30 @@ void draw_bumped_wumpus() {
     sprite(6, (120 - 10 - 24), 20, 1, 1, 24, 24);
 
     pen(15, 15, 15);
-    std::string wumpus_text = "WUMPUS!";
-    uint32_t wumpus_width = text_width(wumpus_text);
-    text(wumpus_text, 60 - wumpus_width / 2, 112);
+    text_centered("THE WUMPUS GOT YOU!", 60, 110);
   }
+}
+
+
+// -------------------------------------------------------------------------------
+// Win states / functions
+// -------------------------------------------------------------------------------
+
+void update_win(uint32_t tick) {
+  if (tick - current_state.change_time > 300) {
+    set_state(tick, GAME_OVER_STATE);
+    return;
+  }
+}
+
+void draw_win() {
+  pen(15, 15, 15);
+  draw_room(0, 0, target_x, target_y);
+
+  sprite(2, 40, 40, 1, 1, 40, 40);
+
+  pen(15, 0, 0);
+  text_centered("YOU GOT THE WUMPUS!", 60, 110);
 }
 
 
@@ -502,14 +532,9 @@ void update_game_over(uint32_t tick) {
 
 void draw_game_over() {
   pen(15, 15, 15);
-  std::string wumpus_text = "GAME OVER";
-  uint32_t wumpus_width = text_width(wumpus_text);
-  text(wumpus_text, 60 - wumpus_width / 2, 60);
+  text_centered("GAME OVER", 60, 60);
 
-  std::string press_any_key_text = "PRESS ANY KEY";
-  uint32_t press_any_key_text_w = text_width(press_any_key_text);
-  text(press_any_key_text, 60 - press_any_key_text_w / 2, 100);
-
+  text_centered("PRESS ANY KEY", 60, 100);
   pen(0, 0, 0, game_over_fade);
   frect(0, 90, 120, 30);
 }
