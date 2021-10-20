@@ -22,5 +22,8 @@ Point random_location();
 bool any_key_pressed();
 
 
+void text_centered(const std::string &str, uint32_t x, uint32_t y);
+
+
 #endif // UTILS_HPP_INCLUDED_
 

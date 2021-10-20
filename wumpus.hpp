@@ -65,6 +65,16 @@ const state ARROW_FLIGHT_STATE{.update = update_arrow_flight, .draw=draw_arrow_f
 
 
 // -------------------------------------------------------------------------------
+// Win states / functions
+// -------------------------------------------------------------------------------
+
+void update_win(uint32_t tick);
+void draw_win();
+
+const state WIN_STATE{.update = update_win, .draw=draw_win};
+
+
+// -------------------------------------------------------------------------------
 // Walking states / functions
 // -------------------------------------------------------------------------------
 
