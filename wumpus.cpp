@@ -15,6 +15,7 @@ using namespace picosystem;
 
 state current_state;
 bool moving_north, moving_south, moving_east, moving_west;
+uint32_t shooting_direction = NONE;
 int camera_x, camera_y;
 int world_x, world_y;
 
@@ -159,13 +160,6 @@ void update_enter_new_room(uint32_t tick) {
   }
 }
 
-enum wall {
-  WEST =  0x0001,
-  NORTH = 0x0010,
-  EAST =  0x0100,
-  SOUTH = 0x1000
-};
-
 void update_standing_in_room(uint32_t tick) {
   moving_north = pressed(UP) && (map[world_x][world_y] & 0x0010);
   moving_south = pressed(DOWN) && (map[world_x][world_y] & 0x1000);
@@ -212,8 +206,22 @@ bool shooting_blink = false;
 uint8_t shooting_fade = 0;
 
 void update_shooting(uint32_t tick) {
+  shooting_direction = NONE;
+
   if (pressed(A) | pressed(B) | pressed(X) | pressed(Y)) {
     set_state(tick, STANDING_STATE);
+  } else if (pressed(UP) && (map[world_x][world_y] & NORTH)) {
+    shooting_direction = NORTH;
+  } else if (pressed(RIGHT) && (map[world_x][world_y] & EAST)) {
+    shooting_direction = EAST;
+  } else if (pressed(DOWN) && (map[world_x][world_y] & SOUTH)) {
+    shooting_direction = SOUTH;
+  } else if (pressed(LEFT) && (map[world_x][world_y] & WEST)) {
+    shooting_direction = WEST;
+  }
+
+  if (shooting_direction != NONE) {
+    set_state(tick, ARROW_FLIGHT_STATE);
   }
 
   uint32_t time_slice = (tick - current_state.change_time) % 75;
@@ -259,6 +267,41 @@ void draw_shooting() {
   }
   if (map[world_x][world_y] & WEST) {
     frect(0, 50, 20, 20);
+  }
+}
+
+
+// -------------------------------------------------------------------------------
+// Arrow flight states / functions
+// -------------------------------------------------------------------------------
+
+int arrow_pos = 0;
+
+void update_arrow_flight(uint32_t tick) {
+  if (tick - current_state.change_time > 200) {
+    set_state(tick, GAME_OVER_STATE);
+    return;
+  }
+
+  arrow_pos = (int)((float)(tick - current_state.change_time) / 200.0 * 120.0);
+}
+
+void draw_arrow_flight() {
+  pen(15, 15, 15);
+  if (shooting_direction == EAST || shooting_direction == WEST) {
+    frect(0, 40, 120, 40);
+  } else {
+    frect(40, 0, 40, 120);
+  }
+
+  if (shooting_direction == NORTH) {
+    sprite(8, 56, 120 - arrow_pos);
+  } else if (shooting_direction == EAST) {
+    sprite(9, arrow_pos, 56);
+  } else if (shooting_direction == SOUTH) {
+    sprite(10, 56, arrow_pos);
+  } else if (shooting_direction == WEST) {
+    sprite(11, 120 - arrow_pos, 56);
   }
 }
 

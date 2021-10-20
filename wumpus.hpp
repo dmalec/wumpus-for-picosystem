@@ -7,6 +7,19 @@
 
 
 // -------------------------------------------------------------------------------
+// Directions
+// -------------------------------------------------------------------------------
+
+enum wall {
+  NONE =  0x0000,
+  WEST =  0x0001,
+  NORTH = 0x0010,
+  EAST =  0x0100,
+  SOUTH = 0x1000
+};
+
+
+// -------------------------------------------------------------------------------
 // State types / functions
 // -------------------------------------------------------------------------------
 
@@ -39,6 +52,16 @@ void update_shooting(uint32_t tick);
 void draw_shooting();
 
 const state SHOOTING_STATE{.update = update_shooting, .draw=draw_shooting};
+
+
+// -------------------------------------------------------------------------------
+// Arrow flight states / functions
+// -------------------------------------------------------------------------------
+
+void update_arrow_flight(uint32_t tick);
+void draw_arrow_flight();
+
+const state ARROW_FLIGHT_STATE{.update = update_arrow_flight, .draw=draw_arrow_flight};
 
 
 // -------------------------------------------------------------------------------
