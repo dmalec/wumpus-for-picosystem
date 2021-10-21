@@ -93,7 +93,7 @@ void update(uint32_t tick) {
   current_state.update(tick);
 }
 
-void draw() {
+void draw(uint32_t tick) {
   camera(0, 0);
   pen(0, 0, 0);
   clear();
