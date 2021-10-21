@@ -118,6 +118,11 @@ const state BUMPED_WUMPUS_STATE{.update = update_bumped_wumpus, .draw=draw_bumpe
 // Splash screen states / functions
 // -------------------------------------------------------------------------------
 
+void update_welcome(uint32_t tick);
+void draw_welcome();
+
+const state WELCOME_STATE{.update = update_welcome, .draw=draw_welcome};
+
 void update_game_over(uint32_t tick);
 void draw_game_over();
 

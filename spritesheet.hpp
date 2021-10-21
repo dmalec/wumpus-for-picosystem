@@ -12,5 +12,7 @@ using namespace picosystem;
 
 extern buffer_t *custom_sprite_sheet;
 
+extern buffer_t *wumpus_title_buffer;
+
 
 #endif // SPRITESHEET_HPP_INCLUDED_

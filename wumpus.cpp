@@ -86,7 +86,7 @@ void init() {
   init_hazards();
   init_map();
 
-  set_state(0, ENTER_NEW_ROOM_STATE);
+  set_state(0, WELCOME_STATE);
 }
 
 void update(uint32_t tick) {
@@ -475,7 +475,7 @@ void draw_bumped_wumpus() {
     sprite(6, (120 - 10 - 24), 20, 1, 1, 24, 24);
 
     pen(15, 15, 15);
-    text_centered("THE   WUMPUS   GOT   YOU!", 60, 110);
+    text_centered("THE  WUMPUS  GOT  YOU!", 60, 110);
   }
 }
 
@@ -498,13 +498,54 @@ void draw_win() {
   sprite(2, 40, 40, 1, 1, 40, 40);
 
   pen(15, 0, 0);
-  text_centered("YOU   GOT   THE   WUMPUS!", 60, 110);
+  text_centered("YOU  GOT  THE  WUMPUS!", 60, 110);
 }
 
 
 // -------------------------------------------------------------------------------
 // Splash screen states / functions
 // -------------------------------------------------------------------------------
+
+bool welcome_blink = false;
+uint8_t welcome_fade = 0;
+
+void update_welcome(uint32_t tick) {
+  if (any_key_pressed()) {
+    world_x = 0;
+    world_y = 0;
+
+    set_state(tick, ENTER_NEW_ROOM_STATE);
+    return;
+  }
+
+  uint32_t time_slice = (tick - current_state.change_time) % 150;
+  if (time_slice == 0) {
+    welcome_blink = !welcome_blink;
+  }
+
+  if (welcome_blink) {
+    welcome_fade = time_slice / 10;
+  } else {
+    welcome_fade = 15 - time_slice / 10;
+  }
+}
+
+void draw_welcome() {
+  pen(15, 0, 0);
+  frect(0, 0, 120, 120);
+
+  sprite(6, 10, 20, 1, 1, 24, 24);
+  sprite(6, (120 - 10 - 24), 20, 1, 1, 24, 24);
+
+  blit(wumpus_title_buffer, 0, 0, 112, 16, 4, 64);
+
+  pen(15, 15, 15);
+  text_centered("PRESS  ANY  KEY", 60, 100);
+
+  pen(15, 0, 0, welcome_fade);
+  frect(0, 90, 120, 30);
+}
+
 
 bool game_over_blink = false;
 uint8_t game_over_fade = 0;
@@ -532,9 +573,9 @@ void update_game_over(uint32_t tick) {
 
 void draw_game_over() {
   pen(15, 15, 15);
-  text_centered("GAME   OVER", 60, 60);
+  text_centered("GAME  OVER", 60, 60);
 
-  text_centered("PRESS   ANY   KEY", 60, 110);
+  text_centered("PRESS  ANY  KEY", 60, 110);
   pen(0, 0, 0, game_over_fade);
   frect(0, 90, 120, 30);
 }
