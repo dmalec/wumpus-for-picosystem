@@ -326,7 +326,7 @@ void update_walking(uint32_t tick) {
   bool done_moving = false;
 
   if (moving_north) {
-    camera_y--;
+    camera_y -= 3;
     if (camera_y <= -120) {
       world_y--;
       done_moving = true;
@@ -334,7 +334,7 @@ void update_walking(uint32_t tick) {
   }
 
   if (moving_south) {
-    camera_y++;
+    camera_y += 3;
     if (camera_y >= 121) {
       world_y++;
       done_moving = true;
@@ -342,7 +342,7 @@ void update_walking(uint32_t tick) {
   }
 
   if (moving_west) {
-    camera_x--;
+    camera_x -= 3;
     if (camera_x <= -120) {
       world_x--;
       done_moving = true;
@@ -350,7 +350,7 @@ void update_walking(uint32_t tick) {
   }
 
   if (moving_east) {
-    camera_x++;
+    camera_x += 3;
     if (camera_x >= 121) {
       world_x++;
       done_moving = true;
@@ -475,7 +475,7 @@ void draw_bumped_wumpus() {
     sprite(6, (120 - 10 - 24), 20, 1, 1, 24, 24);
 
     pen(15, 15, 15);
-    text_centered("THE WUMPUS GOT YOU!", 60, 110);
+    text_centered("THE   WUMPUS   GOT   YOU!", 60, 110);
   }
 }
 
@@ -498,7 +498,7 @@ void draw_win() {
   sprite(2, 40, 40, 1, 1, 40, 40);
 
   pen(15, 0, 0);
-  text_centered("YOU GOT THE WUMPUS!", 60, 110);
+  text_centered("YOU   GOT   THE   WUMPUS!", 60, 110);
 }
 
 
@@ -532,9 +532,9 @@ void update_game_over(uint32_t tick) {
 
 void draw_game_over() {
   pen(15, 15, 15);
-  text_centered("GAME OVER", 60, 60);
+  text_centered("GAME   OVER", 60, 60);
 
-  text_centered("PRESS ANY KEY", 60, 100);
+  text_centered("PRESS   ANY   KEY", 60, 110);
   pen(0, 0, 0, game_over_fade);
   frect(0, 90, 120, 30);
 }

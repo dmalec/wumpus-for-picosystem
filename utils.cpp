@@ -44,7 +44,9 @@ bool any_key_pressed() {
 
 
 void text_centered(const std::string &str, uint32_t x, uint32_t y) {
-  uint32_t width = text_width((std::string &)str);
+  int32_t width, height;
 
-  text(str, x - width / 2, y);
+  measure(str, width, height);
+
+  text(str, x - (width / 2), y - (height / 2));
 }
