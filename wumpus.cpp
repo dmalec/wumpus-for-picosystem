@@ -24,12 +24,18 @@ Point wumpus, bat_a, bat_b, pit_a, pit_b;
 
 int map[10][10];
 
+// Game stats
+int32_t pit_losses, wumpus_losses, wumpus_wins;
 
 // -------------------------------------------------------------------------------
 // Initialize functions
 // -------------------------------------------------------------------------------
 
 void init_globals() {
+  pit_losses = 0;
+  wumpus_losses = 0;
+  wumpus_wins = 0;
+
   moving_north = false;
   moving_south = false;
   moving_east = false;
@@ -77,6 +83,10 @@ void set_state(uint32_t tick, state new_state) {
   current_state.update = new_state.update;
   current_state.draw = new_state.draw;
   current_state.change_time = tick;
+
+  if (new_state.init != NULL) {
+    new_state.init();
+  }
 }
 
 void init() {
@@ -181,17 +191,17 @@ void draw_single_room() {
   text(str((float)world_y, 0), 112, 112);
 
   if (is_neighbor(wumpus, world_x, world_y)) {
-    sprite(2, 22, 2);
+    sprite(WUMPUS_ICON, 22, 2);
   }
 
   if (is_neighbor(bat_a, world_x, world_y) ||
       is_neighbor(bat_b, world_x, world_y)) {
-    sprite(1, 12, 2);
+    sprite(BAT_ICON, 12, 2);
   }
 
   if (is_neighbor(pit_a, world_x, world_y) ||
       is_neighbor(pit_b, world_x, world_y)) {
-    sprite(0, 2, 2);
+    sprite(PIT_ICON, 2, 2);
   }
 }
 
@@ -248,16 +258,16 @@ void draw_shooting() {
   pen(0, 0, 0);
 
   if (map[world_x][world_y] & NORTH) {
-    sprite(8, 52, 2, 1, 1, 16, 16);
+    sprite(ARROW_NORTH, 52, 2, 1, 1, 16, 16);
   }
   if (map[world_x][world_y] & SOUTH) {
-    sprite(10, 52, 102, 1, 1, 16, 16);
+    sprite(ARROW_SOUTH, 52, 102, 1, 1, 16, 16);
   }
   if (map[world_x][world_y] & EAST) {
-    sprite(9, 102, 52, 1, 1, 16, 16);
+    sprite(ARROW_EAST, 102, 52, 1, 1, 16, 16);
   }
   if (map[world_x][world_y] & WEST) {
-    sprite(11, 2, 52, 1, 1, 16, 16);
+    sprite(ARROW_WEST, 2, 52, 1, 1, 16, 16);
   }
 
   pen(15, 15, 15, shooting_fade);
@@ -307,13 +317,13 @@ void draw_arrow_flight() {
   }
 
   if (shooting_direction == NORTH) {
-    sprite(8, 56, 120 - arrow_pos);
+    sprite(ARROW_NORTH, 56, 120 - arrow_pos);
   } else if (shooting_direction == EAST) {
-    sprite(9, arrow_pos, 56);
+    sprite(ARROW_EAST, arrow_pos, 56);
   } else if (shooting_direction == SOUTH) {
-    sprite(10, 56, arrow_pos);
+    sprite(ARROW_SOUTH, 56, arrow_pos);
   } else if (shooting_direction == WEST) {
-    sprite(11, 120 - arrow_pos, 56);
+    sprite(ARROW_WEST, 120 - arrow_pos, 56);
   }
 }
 
@@ -401,8 +411,8 @@ void draw_bat_travel() {
   pen(15, 15, 15);
   frect(0, 40, 120, 40);
 
-  sprite(1, bat_x_pos, 52);
-  sprite(7, bat_x_pos, 60);
+  sprite(BAT_ICON, bat_x_pos, 52);
+  sprite(PLAYER_CARRIED, bat_x_pos, 60);
 
   pen(15, 15, 15);
   text_centered("BAT!", 60, 110);
@@ -413,8 +423,15 @@ void draw_bat_travel() {
 // Pit states / functions
 // -------------------------------------------------------------------------------
 
-int pit_y_pos = -8;
-bool pit_show_text = false;
+int pit_y_pos;
+bool pit_show_text;
+
+void init_fell_in_pit() {
+  pit_losses++;
+
+  pit_y_pos = -8;
+  pit_show_text = false;
+}
 
 void update_fell_in_pit(uint32_t tick) {
   if (tick - current_state.change_time > 400) {
@@ -433,7 +450,7 @@ void draw_fell_in_pit() {
   pen(0, 11, 0);
   frect(40, 96, 40, 24);
 
-  sprite(3, 56, pit_y_pos);
+  sprite(PLAYER_FALLING, 56, pit_y_pos);
 
   if (pit_show_text) {
     pen(15, 15, 15);
@@ -446,8 +463,15 @@ void draw_fell_in_pit() {
 // Wumpus states / functions
 // -------------------------------------------------------------------------------
 
-int wumpus_y_offset = -8;
-bool wumpus_show_text = false;
+int wumpus_y_offset;
+bool wumpus_show_text;
+
+void init_bumped_wumpus() {
+  wumpus_losses++;
+
+  wumpus_y_offset = -8;
+  wumpus_show_text = false;
+}
 
 void update_bumped_wumpus(uint32_t tick) {
   if (tick - current_state.change_time > 400) {
@@ -466,13 +490,13 @@ void draw_bumped_wumpus() {
   frect(0, 120-wumpus_y_offset, 120, wumpus_y_offset);
 
   for (int x=0; x<8; x++) {
-    sprite(4, x*15, wumpus_y_offset, 1, 1, 15, 15);
-    sprite(5, x*15, 120-wumpus_y_offset-15, 1, 1, 15, 15);
+    sprite(WUMPUS_TOP_TOOTH, x*15, wumpus_y_offset, 1, 1, 15, 15);
+    sprite(WUMPUS_BOTTOM_TOOTH, x*15, 120-wumpus_y_offset-15, 1, 1, 15, 15);
   }
 
   if (wumpus_show_text) {
-    sprite(6, 10, 20, 1, 1, 24, 24);
-    sprite(6, (120 - 10 - 24), 20, 1, 1, 24, 24);
+    sprite(WUMPUS_EYE, 10, 20, 1, 1, 24, 24);
+    sprite(WUMPUS_EYE, (120 - 10 - 24), 20, 1, 1, 24, 24);
 
     pen(15, 15, 15);
     text_centered("THE  WUMPUS  GOT  YOU!", 60, 110);
@@ -483,6 +507,10 @@ void draw_bumped_wumpus() {
 // -------------------------------------------------------------------------------
 // Win states / functions
 // -------------------------------------------------------------------------------
+
+void init_win() {
+  wumpus_wins++;
+}
 
 void update_win(uint32_t tick) {
   if (tick - current_state.change_time > 300) {
@@ -495,7 +523,7 @@ void draw_win() {
   pen(15, 15, 15);
   draw_room(0, 0, target_x, target_y);
 
-  sprite(2, 40, 40, 1, 1, 40, 40);
+  sprite(WUMPUS_ICON, 40, 40, 1, 1, 40, 40);
 
   pen(15, 0, 0);
   text_centered("YOU  GOT  THE  WUMPUS!", 60, 110);
@@ -534,8 +562,8 @@ void draw_welcome() {
   pen(15, 0, 0);
   frect(0, 0, 120, 120);
 
-  sprite(6, 10, 20, 1, 1, 24, 24);
-  sprite(6, (120 - 10 - 24), 20, 1, 1, 24, 24);
+  sprite(WUMPUS_EYE, 10, 20, 1, 1, 24, 24);
+  sprite(WUMPUS_EYE, (120 - 10 - 24), 20, 1, 1, 24, 24);
 
   blit(wumpus_title_buffer, 0, 0, 112, 16, 4, 64);
 
@@ -573,7 +601,14 @@ void update_game_over(uint32_t tick) {
 
 void draw_game_over() {
   pen(15, 15, 15);
-  text_centered("GAME  OVER", 60, 60);
+  text_centered("GAME  OVER", 60, 10);
+
+  sprite(WUMPUS_ICON,       20, 40);
+  text(str(wumpus_losses),  40, 40);
+  sprite(ARROW_EAST,        20, 60);
+  text(str(wumpus_wins),    40, 60);
+  sprite(PIT_ICON,          20, 80);
+  text(str(pit_losses),     40, 80);
 
   text_centered("PRESS  ANY  KEY", 60, 110);
   pen(0, 0, 0, game_over_fade);
