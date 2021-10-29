@@ -24,6 +24,7 @@ enum wall {
 // -------------------------------------------------------------------------------
 
 struct state {
+  void (*init)();
   void (*update)(uint32_t);
   void (*draw)();
   uint32_t change_time;
@@ -40,8 +41,8 @@ void update_enter_new_room(uint32_t tick);
 void update_standing_in_room(uint32_t tick);
 void draw_single_room();
 
-const state ENTER_NEW_ROOM_STATE{.update = update_enter_new_room, .draw=draw_single_room};
-const state STANDING_STATE{.update = update_standing_in_room, .draw=draw_single_room};
+const state ENTER_NEW_ROOM_STATE{.init = NULL, .update = update_enter_new_room, .draw=draw_single_room};
+const state STANDING_STATE{.init = NULL, .update = update_standing_in_room, .draw=draw_single_room};
 
 
 // -------------------------------------------------------------------------------
@@ -51,7 +52,7 @@ const state STANDING_STATE{.update = update_standing_in_room, .draw=draw_single_
 void update_shooting(uint32_t tick);
 void draw_shooting();
 
-const state SHOOTING_STATE{.update = update_shooting, .draw=draw_shooting};
+const state SHOOTING_STATE{.init = NULL, .update = update_shooting, .draw=draw_shooting};
 
 
 // -------------------------------------------------------------------------------
@@ -61,17 +62,18 @@ const state SHOOTING_STATE{.update = update_shooting, .draw=draw_shooting};
 void update_arrow_flight(uint32_t tick);
 void draw_arrow_flight();
 
-const state ARROW_FLIGHT_STATE{.update = update_arrow_flight, .draw=draw_arrow_flight};
+const state ARROW_FLIGHT_STATE{.init = NULL, .update = update_arrow_flight, .draw=draw_arrow_flight};
 
 
 // -------------------------------------------------------------------------------
 // Win states / functions
 // -------------------------------------------------------------------------------
 
+void init_win();
 void update_win(uint32_t tick);
 void draw_win();
 
-const state WIN_STATE{.update = update_win, .draw=draw_win};
+const state WIN_STATE{.init = init_win, .update = update_win, .draw=draw_win};
 
 
 // -------------------------------------------------------------------------------
@@ -81,7 +83,7 @@ const state WIN_STATE{.update = update_win, .draw=draw_win};
 void update_walking(uint32_t tick);
 void draw_walking();
 
-const state WALKING_STATE{.update = update_walking, .draw=draw_walking};
+const state WALKING_STATE{.init = NULL, .update = update_walking, .draw=draw_walking};
 
 
 // -------------------------------------------------------------------------------
@@ -91,27 +93,29 @@ const state WALKING_STATE{.update = update_walking, .draw=draw_walking};
 void update_bat_travel(uint32_t tick);
 void draw_bat_travel();
 
-const state BAT_TRAVEL_STATE{.update = update_bat_travel, .draw=draw_bat_travel};
+const state BAT_TRAVEL_STATE{.init = NULL, .update = update_bat_travel, .draw=draw_bat_travel};
 
 
 // -------------------------------------------------------------------------------
 // Pit states / functions
 // -------------------------------------------------------------------------------
 
+void init_fell_in_pit();
 void update_fell_in_pit(uint32_t tick);
 void draw_fell_in_pit();
 
-const state FELL_IN_PIT_STATE{.update = update_fell_in_pit, .draw=draw_fell_in_pit};
+const state FELL_IN_PIT_STATE{.init = init_fell_in_pit, .update = update_fell_in_pit, .draw=draw_fell_in_pit};
 
 
 // -------------------------------------------------------------------------------
 // Wumpus states / functions
 // -------------------------------------------------------------------------------
 
+void init_bumped_wumpus();
 void update_bumped_wumpus(uint32_t tick);
 void draw_bumped_wumpus();
 
-const state BUMPED_WUMPUS_STATE{.update = update_bumped_wumpus, .draw=draw_bumped_wumpus};
+const state BUMPED_WUMPUS_STATE{.init = init_bumped_wumpus, .update = update_bumped_wumpus, .draw=draw_bumped_wumpus};
 
 
 // -------------------------------------------------------------------------------
@@ -121,12 +125,12 @@ const state BUMPED_WUMPUS_STATE{.update = update_bumped_wumpus, .draw=draw_bumpe
 void update_welcome(uint32_t tick);
 void draw_welcome();
 
-const state WELCOME_STATE{.update = update_welcome, .draw=draw_welcome};
+const state WELCOME_STATE{.init = NULL, .update = update_welcome, .draw=draw_welcome};
 
 void update_game_over(uint32_t tick);
 void draw_game_over();
 
-const state GAME_OVER_STATE{.update = update_game_over, .draw=draw_game_over};
+const state GAME_OVER_STATE{.init = NULL, .update = update_game_over, .draw=draw_game_over};
 
 
 #endif // WUMPUS_HPP_INCLUDED_
