@@ -12,12 +12,40 @@ find_package(PICOSYSTEM REQUIRED)
 
 picosystem_executable(
   wumpus
+
+  game_types.hpp
+  game_utils.hpp
+  game_utils.cpp
+
+
   wumpus.hpp
   wumpus.cpp
   spritesheet.hpp
   spritesheet.cpp
-  utils.hpp
-  utils.cpp
+
+  ArrowFlightState.cpp
+  ArrowFlightState.hpp
+  BatTravelState.cpp
+  BatTravelState.hpp
+  EnterNewRoomState.cpp
+  EnterNewRoomState.hpp
+  GameOverState.cpp
+  GameOverState.hpp
+  LoseToWumpusState.cpp
+  LoseToWumpusState.hpp
+  PitFallState.cpp
+  PitFallState.hpp
+  ShootingState.cpp
+  ShootingState.hpp
+  SplashScreenState.cpp
+  SplashScreenState.hpp
+  StandingInRoomState.cpp
+  StandingInRoomState.hpp
+  State.hpp
+  WalkingState.cpp
+  WalkingState.hpp
+  WinState.cpp
+  WinState.hpp
 )
 
 pixel_double(wumpus)

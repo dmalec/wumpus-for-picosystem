@@ -5,132 +5,57 @@
 #ifndef WUMPUS_HPP_INCLUDED_
 #define WUMPUS_HPP_INCLUDED_
 
+#include "game_types.hpp"
+#include "game_utils.hpp"
 
-// -------------------------------------------------------------------------------
-// Directions
-// -------------------------------------------------------------------------------
-
-enum wall {
-  NONE =  0x0000,
-  WEST =  0x0001,
-  NORTH = 0x0010,
-  EAST =  0x0100,
-  SOUTH = 0x1000
-};
+#include "State.hpp"
 
 
 // -------------------------------------------------------------------------------
-// State types / functions
+// Globals
 // -------------------------------------------------------------------------------
 
-struct state {
-  void (*init)();
-  void (*update)(uint32_t);
-  void (*draw)();
-  uint32_t change_time;
-};
-
-void set_state(uint32_t tick, state new_state);
+extern State *current_state;
+extern bool moving_north, moving_south, moving_east, moving_west;
+extern uint32_t shooting_direction;
+extern GamePoint wumpus, bat_a, bat_b, pit_a, pit_b;
+extern uint8_t target_x, target_y;
+extern uint8_t world_x, world_y;
+extern int32_t pit_losses, wumpus_losses, wumpus_wins;
+extern int map[10][10];
 
 
 // -------------------------------------------------------------------------------
-// Room states / functions
+// Map functions
 // -------------------------------------------------------------------------------
 
-void update_enter_new_room(uint32_t tick);
-void update_standing_in_room(uint32_t tick);
+GamePoint random_location();
+bool currently_moving();
+
+
+// -------------------------------------------------------------------------------
+// States
+// -------------------------------------------------------------------------------
+
+extern State *arrow_flight_state;
+extern State *bat_travel_state;
+extern State *enter_new_room_state;
+extern State *game_over_state;
+extern State *lose_to_wumpus_state;
+extern State *pit_fall_state;
+extern State *shooting_state;
+extern State *splash_screen_state;
+extern State *standing_in_room_state;
+extern State *walking_state;
+extern State *win_state;
+
+
+// -------------------------------------------------------------------------------
+// Drawing function
+// -------------------------------------------------------------------------------
+
+void draw_room(int x, int y, int map_x, int map_y);
 void draw_single_room();
-
-const state ENTER_NEW_ROOM_STATE{.init = NULL, .update = update_enter_new_room, .draw=draw_single_room};
-const state STANDING_STATE{.init = NULL, .update = update_standing_in_room, .draw=draw_single_room};
-
-
-// -------------------------------------------------------------------------------
-// Shooting states / functions
-// -------------------------------------------------------------------------------
-
-void update_shooting(uint32_t tick);
-void draw_shooting();
-
-const state SHOOTING_STATE{.init = NULL, .update = update_shooting, .draw=draw_shooting};
-
-
-// -------------------------------------------------------------------------------
-// Arrow flight states / functions
-// -------------------------------------------------------------------------------
-
-void update_arrow_flight(uint32_t tick);
-void draw_arrow_flight();
-
-const state ARROW_FLIGHT_STATE{.init = NULL, .update = update_arrow_flight, .draw=draw_arrow_flight};
-
-
-// -------------------------------------------------------------------------------
-// Win states / functions
-// -------------------------------------------------------------------------------
-
-void init_win();
-void update_win(uint32_t tick);
-void draw_win();
-
-const state WIN_STATE{.init = init_win, .update = update_win, .draw=draw_win};
-
-
-// -------------------------------------------------------------------------------
-// Walking states / functions
-// -------------------------------------------------------------------------------
-
-void update_walking(uint32_t tick);
-void draw_walking();
-
-const state WALKING_STATE{.init = NULL, .update = update_walking, .draw=draw_walking};
-
-
-// -------------------------------------------------------------------------------
-// Bat states / functions
-// -------------------------------------------------------------------------------
-
-void update_bat_travel(uint32_t tick);
-void draw_bat_travel();
-
-const state BAT_TRAVEL_STATE{.init = NULL, .update = update_bat_travel, .draw=draw_bat_travel};
-
-
-// -------------------------------------------------------------------------------
-// Pit states / functions
-// -------------------------------------------------------------------------------
-
-void init_fell_in_pit();
-void update_fell_in_pit(uint32_t tick);
-void draw_fell_in_pit();
-
-const state FELL_IN_PIT_STATE{.init = init_fell_in_pit, .update = update_fell_in_pit, .draw=draw_fell_in_pit};
-
-
-// -------------------------------------------------------------------------------
-// Wumpus states / functions
-// -------------------------------------------------------------------------------
-
-void init_bumped_wumpus();
-void update_bumped_wumpus(uint32_t tick);
-void draw_bumped_wumpus();
-
-const state BUMPED_WUMPUS_STATE{.init = init_bumped_wumpus, .update = update_bumped_wumpus, .draw=draw_bumped_wumpus};
-
-
-// -------------------------------------------------------------------------------
-// Splash screen states / functions
-// -------------------------------------------------------------------------------
-
-void update_welcome(uint32_t tick);
-void draw_welcome();
-
-const state WELCOME_STATE{.init = NULL, .update = update_welcome, .draw=draw_welcome};
-
-void update_game_over(uint32_t tick);
-void draw_game_over();
-
-const state GAME_OVER_STATE{.init = NULL, .update = update_game_over, .draw=draw_game_over};
 
 
 #endif // WUMPUS_HPP_INCLUDED_
