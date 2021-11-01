@@ -2,9 +2,6 @@
 //
 // MIT License (see LICENSE file for details)
 
-#include <cstdlib>
-#include <ctime>
-
 #include "picosystem.hpp"
 #include "wumpus.hpp"
 #include "spritesheet.hpp"
@@ -15,6 +12,7 @@
 #include "EnterNewRoomState.hpp"
 #include "GameOverState.hpp"
 #include "LoseToWumpusState.hpp"
+#include "NewGameState.hpp"
 #include "PitFallState.hpp"
 #include "ShootingState.hpp"
 #include "SplashScreenState.hpp"
@@ -46,6 +44,7 @@ State *bat_travel_state;
 State *enter_new_room_state;
 State *game_over_state;
 State *lose_to_wumpus_state;
+State *new_game_state;
 State *pit_fall_state;
 State *shooting_state;
 State *splash_screen_state;
@@ -63,6 +62,7 @@ void init_states() {
   enter_new_room_state = new EnterNewRoomState();
   game_over_state = new GameOverState();
   lose_to_wumpus_state = new LoseToWumpusState();
+  new_game_state = new NewGameState();
   pit_fall_state = new PitFallState();
   shooting_state = new ShootingState();
   splash_screen_state = new SplashScreenState();
@@ -75,21 +75,6 @@ void init_globals() {
   pit_losses = 0;
   wumpus_losses = 0;
   wumpus_wins = 0;
-
-  moving_north = false;
-  moving_south = false;
-  moving_east = false;
-  moving_west = false;
-  world_x = 0;
-  world_y = 0;
-}
-
-void init_hazards() {
-  wumpus = random_location();
-  bat_a = random_location();
-  bat_b = random_location();
-  pit_a = random_location();
-  pit_b = random_location();
 }
 
 void init_map() {
@@ -122,7 +107,6 @@ void init() {
 
   init_states();
   init_globals();
-  init_hazards();
   init_map();
 
   current_state = splash_screen_state;

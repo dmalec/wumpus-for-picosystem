@@ -9,7 +9,7 @@
 
 
 bool compare_points(GamePoint p, uint8_t x, uint8_t y);
-
+GamePoint location(uint8_t x, uint8_t y);
 
 uint8_t rand_range(uint8_t max);
 

@@ -12,6 +12,12 @@
 
 
 // -------------------------------------------------------------------------------
+// Compile Time Options
+// -------------------------------------------------------------------------------
+
+// #define FIXED_PLACEMENT 1
+
+// -------------------------------------------------------------------------------
 // Globals
 // -------------------------------------------------------------------------------
 
@@ -31,6 +37,7 @@ extern int map[10][10];
 
 GamePoint random_location();
 bool currently_moving();
+bool is_neighbor(GamePoint p, int x, int y);
 
 
 // -------------------------------------------------------------------------------
@@ -42,6 +49,7 @@ extern State *bat_travel_state;
 extern State *enter_new_room_state;
 extern State *game_over_state;
 extern State *lose_to_wumpus_state;
+extern State *new_game_state;
 extern State *pit_fall_state;
 extern State *shooting_state;
 extern State *splash_screen_state;
