@@ -16,10 +16,7 @@ State *GameOverState::check_state_change(uint32_t total_ticks, uint32_t elapsed_
     return NULL;
   }
 
-  world_x = 0;
-  world_y = 0;
-
-  return enter_new_room_state;
+  return new_game_state;
 }
 
 void GameOverState::handle_update(uint32_t total_ticks, uint32_t elapsed_ticks) {

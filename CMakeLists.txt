@@ -16,6 +16,8 @@ picosystem_executable(
   game_types.hpp
   game_utils.hpp
   game_utils.cpp
+  rand_utils.hpp
+  rand_utils.cpp
 
 
   wumpus.hpp
@@ -33,6 +35,8 @@ picosystem_executable(
   GameOverState.hpp
   LoseToWumpusState.cpp
   LoseToWumpusState.hpp
+  NewGameState.cpp
+  NewGameState.hpp
   PitFallState.cpp
   PitFallState.hpp
   ShootingState.cpp

@@ -4,6 +4,7 @@
 
 #include "picosystem.hpp"
 #include "game_utils.hpp"
+#include "rand_utils.hpp"
 
 using namespace picosystem;
 
@@ -12,9 +13,18 @@ bool compare_points(GamePoint p, uint8_t x, uint8_t y) {
   return p.x == x && p.y == y;
 }
 
+GamePoint location(uint8_t x, uint8_t y) {
+  GamePoint location;
+
+  location.x = x;
+  location.y = y;
+
+  return location;
+}
+
 
 uint8_t rand_range(uint8_t max) {
-  return std::rand() / ((RAND_MAX + 1u) / max);
+  return rand_uint32() % max;
 }
 
 
